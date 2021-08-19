@@ -1,13 +1,8 @@
 import requests as req
 from argparse import ArgumentParser, RawDescriptionHelpFormatter
+import configparser
 import json
 import sys
-
-""" How to get Channel IDs:
-1. Log in to Discord via the Web App, https://discord.com (e.g. NOT the Desktop App)
-2. Navigate to the channel you want to post in
-3. Copy the CHANNELID value from your browser bar. Example: https://discord.com/channels/12345678910123/CHANNELID
- """
 
 class Channel:
     def __init__(self, name, id):
@@ -53,32 +48,33 @@ if __name__ == '__main__':
     )
     parser.add_argument("-m", required=True, help="The message to post. Example: \"Mook becomes a space cadet! Outer Wilds VR #VR\"", dest="message")
     args = parser.parse_args()
+    configParser = configparser.ConfigParser()
+    configParser.read("dm.conf")
 
-    login_auth = dict(login="YOUR_USERNAME",
-                    password="YOUR_PASSWORD",
+    discord_username = configParser.get("discord", "username").strip('"')
+    discord_password = configParser.get("discord", "password").strip('"')
+    twitch_channel = configParser.get("twitch", "twitch_channel_url").strip('"')
+
+
+    login_auth = dict(login=discord_username,
+                    password=discord_password,
                     undelete=False,
                     captcha_key=None,
                     login_source=None,
                     gift_code_sku_id=None)   
-
-    twitch_channel = "https://twitch.tv/YOUR_TWITCH_CHANNEL"
-    
+  
    
 # "CHANNEL NAME" can be any value you want.
 # "CHANNEL ID" must be a valid channel ID value. Refer to the beginning of this file on how to obtain the correct channel ID.
 
-# Example of a valid list of multple channels:
-# channels = [ Channel("CHANNEL1", "987654321")
-#             ,Channel("CHANNEL2", "123456789")
-#             ,Channel("Channel3", "11112222333")
-#             ] 
+    channels = []
+    f = open("channels.conf","r").readlines()
+    for line in f:
+        cname = line.split(":")[0]
+        cid = line.split(":")[1].strip("\n")
+        channels.append(Channel(cname,cid))
 
-    channels = [ Channel("CHANNEL NAME", "CHANNEL ID") ] 
     message = args.message
 
     token = getOAuthToken(login_auth)
     postMessageToChannel(token,channels, message)
-
-
-
-

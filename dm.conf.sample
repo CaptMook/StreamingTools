@@ -1,0 +1,6 @@
+[discord]
+username = username
+password = password
+
+[twitch]
+twitch_channel_url = https://twitch.tv/YOUR_CHANNEL
