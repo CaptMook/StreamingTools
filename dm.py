@@ -1,16 +1,33 @@
+from os import wait
 import requests as req
 from argparse import ArgumentParser, RawDescriptionHelpFormatter
 import configparser
 import json
 import sys
+import yaml
+import time
+
+
+user_agent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:90.0) Gecko/20100101 Firefox/90.0"
+sleep = 5
+token_file = "token.json"
 
 class Channel:
-    def __init__(self, name, id):
+    def __init__(self, name, id, isAllowed=True):
         self.name = name
         self.id = id
-        
+        self.isAllowed = isAllowed
+
+def parseChannelFile():
+    channels = []
+    stream = open(".vscode/channels.yml", "rb")
+    dictionary = dict(yaml.load(stream, Loader=yaml.FullLoader))
+    for d1 in dictionary['channels']:
+        channels.append(Channel(name=d1["name"], id=d1["id"], isAllowed=d1["everyoneIsAllowed"]))
+    return channels
+
 def getOAuthToken(login_auth):
-    header = {'Content-Type':'application/json'}
+    header = {'Content-Type':'application/json', 'User-agent': user_agent}
     resp = req.post("https://discord.com/api/v9/auth/login", headers=header,data=json.dumps(login_auth))
     if resp.status_code != 200:
         print("An error has occurred while attempting to authenticate. See the error message below:")
@@ -21,17 +38,41 @@ def getOAuthToken(login_auth):
         sys.exit()
         
     else:
-        access_token = json.loads(resp.content)["token"]
+        f = open("token.json", "w")
+        f.write(json.dumps(json.loads(resp.content)))
+        f.close()
+        access_token = json.loads(resp.content)["token"] 
         print("Successfully Authenticated!")
         return access_token
 
+def verifyOAuthToken():
+    try:
+        auth_file = json.load(open(token_file))
+    except IOError:
+        print("%s doesn't exist! Getting new OAuth token file." % token_file)
+        return
+
+    token = auth_file["token"]
+    header = {'Content-Type':'application/json', 'Authorization': token,'User-agent': user_agent}
+    resp = req.get("https://discord.com/api/v9/users/@me/library", headers=header)
+    if resp.status_code != 200:
+        print("OAuth token no longer valid. Getting new OAuth token.")
+    return token
+
+
 
 def postMessageToChannel(token,channel_list, message):
-    header = {'Content-Type':'application/json', 'Authorization': token}
-    message = message +" "+ twitch_channel
-    c = {'content': message}
+    header = {'Content-Type':'application/json', 'Authorization': token,'User-agent': user_agent}
+    
     print("Posting message to channels now....")
     for channel in channel_list:
+        print("Waiting for %s seconds..." % str(sleep))
+        time.sleep(sleep)
+        if channel.isAllowed == False:
+            message = removeEveryoneTag(message)
+            
+        message = message +" "+ twitch_channel
+        c = {'content': message}
         resp = req.post("https://discord.com/api/v9/channels/"+ channel.id + "/messages", headers=header, data=json.dumps(c))
         if resp.status_code != 200:
             print("An error occurred when attempting to post a message to channel  %s:" % channel.name)
@@ -39,6 +80,9 @@ def postMessageToChannel(token,channel_list, message):
         else:
             print("Message successfully posted to channel: %s!" % channel.name)
 
+
+def removeEveryoneTag(message):
+    return str(message).replace("@everyone", "").strip()
 
 
 if __name__ == '__main__':
@@ -50,9 +94,11 @@ if __name__ == '__main__':
     args = parser.parse_args()
     configParser = configparser.ConfigParser()
     configParser.read("dm.conf")
+    
 
     discord_username = configParser.get("discord", "username").strip('"')
     discord_password = configParser.get("discord", "password").strip('"')
+    
     twitch_channel = configParser.get("twitch", "twitch_channel_url").strip('"')
 
 
@@ -63,18 +109,9 @@ if __name__ == '__main__':
                     login_source=None,
                     gift_code_sku_id=None)   
   
-   
-# "CHANNEL NAME" can be any value you want.
-# "CHANNEL ID" must be a valid channel ID value. Refer to the beginning of this file on how to obtain the correct channel ID.
-
-    channels = []
-    f = open("channels.conf","r").readlines()
-    for line in f:
-        cname = line.split(":")[0]
-        cid = line.split(":")[1].strip("\n")
-        channels.append(Channel(cname,cid))
-
     message = args.message
-
-    token = getOAuthToken(login_auth)
+    channels = parseChannelFile()
+    token = verifyOAuthToken()
+    if token == None:
+        token = getOAuthToken(login_auth)
     postMessageToChannel(token,channels, message)

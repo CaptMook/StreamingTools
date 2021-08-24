@@ -1,1 +1,5 @@
 *.conf
+token.json
+channels.yml
+.vscode/*
+.vscode

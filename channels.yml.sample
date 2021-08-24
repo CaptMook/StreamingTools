@@ -1,0 +1,8 @@
+channels:
+  - name: "Channel Name"
+    id: "ChannelID"
+    everyoneIsAllowed: False
+
+  - name: "Channel Name"
+    id: "Channel ID"
+    everyoneIsAllowed: True

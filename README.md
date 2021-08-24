@@ -15,6 +15,7 @@ The following Python modules:
 requests
 argparse
 configparser
+pyyaml
 ```
 
 ### Install
@@ -45,6 +46,21 @@ password = jdoe123
 twitch_channel_url = https://twitch.tv/jdoe
 ```
 Update `channels.conf` with channel names with their channel ID using the format: `Channel Name:ChannelID`. One `Channel Name:ChannelID` per line.
+
+Update `channels.yml` with channel names with their channel ID. Below is the contents of `channels.yml.sample`:
+
+**Note:** If the `everyoneIsAllowed` parameter is set to `False` for a channel, then the script will remove the `@everyone` tag from the posted message, if it exists, for that channel.
+
+```
+channels:
+  - name: "Channel Name"
+    id: "ChannelID"
+    everyoneIsAllowed: False
+
+  - name: "Channel Name"
+    id: "Channel ID"
+    everyoneIsAllowed: True
+```
 
 **How To Find The Channel ID**
 
