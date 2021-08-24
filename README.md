@@ -45,7 +45,6 @@ password = jdoe123
 [twitch]
 twitch_channel_url = https://twitch.tv/jdoe
 ```
-Update `channels.conf` with channel names with their channel ID using the format: `Channel Name:ChannelID`. One `Channel Name:ChannelID` per line.
 
 Update `channels.yml` with channel names with their channel ID. Below is the contents of `channels.yml.sample`:
 
