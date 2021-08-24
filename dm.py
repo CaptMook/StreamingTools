@@ -20,7 +20,7 @@ class Channel:
 
 def parseChannelFile():
     channels = []
-    stream = open(".vscode/channels.yml", "rb")
+    stream = open("channels.yml", "rb")
     dictionary = dict(yaml.load(stream, Loader=yaml.FullLoader))
     for d1 in dictionary['channels']:
         channels.append(Channel(name=d1["name"], id=d1["id"], isAllowed=d1["everyoneIsAllowed"]))
