@@ -1,4 +1,3 @@
-from os import wait
 import requests as req
 from argparse import ArgumentParser, RawDescriptionHelpFormatter
 import configparser
@@ -65,13 +64,13 @@ def postMessageToChannel(token,channel_list, message):
     header = {'Content-Type':'application/json', 'Authorization': token,'User-agent': user_agent}
     
     print("Posting message to channels now....")
+    message = message +" "+ twitch_channel
     for channel in channel_list:
         print("Waiting for %s seconds..." % str(sleep))
         time.sleep(sleep)
         if channel.isAllowed == False:
             message = removeEveryoneTag(message)
             
-        message = message +" "+ twitch_channel
         c = {'content': message}
         resp = req.post("https://discord.com/api/v9/channels/"+ channel.id + "/messages", headers=header, data=json.dumps(c))
         if resp.status_code != 200:
