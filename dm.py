@@ -52,10 +52,13 @@ def verifyOAuthToken():
         return
 
     token = auth_file["token"]
+    print("Verifying current token is still valid...")
     header = {'Content-Type':'application/json', 'Authorization': token,'User-agent': user_agent}
     resp = req.get("https://discord.com/api/v9/users/@me/library", headers=header)
     if resp.status_code != 200:
         print("OAuth token no longer valid. Getting new OAuth token.")
+        return 
+    print("Token is still valid!")
     return token
 
 
@@ -68,10 +71,12 @@ def postMessageToChannel(token,channel_list, message):
     for channel in channel_list:
         print("Waiting for %s seconds..." % str(sleep))
         time.sleep(sleep)
+
+        content_message = message
         if channel.isAllowed == False:
-            message = removeEveryoneTag(message)
+            content_message = removeEveryoneTag(message)
             
-        c = {'content': message}
+        c = {'content': content_message}
         resp = req.post("https://discord.com/api/v9/channels/"+ channel.id + "/messages", headers=header, data=json.dumps(c))
         if resp.status_code != 200:
             print("An error occurred when attempting to post a message to channel  %s:" % channel.name)
